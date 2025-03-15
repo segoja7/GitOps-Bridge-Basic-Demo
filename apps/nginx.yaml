@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/markbosire/gitops-repo
-    path: nginx-manifests
+    path: apps
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
