@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-adapter
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: prometheus-adapter
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 4.9.0
+    helm:
+      values: |
+        prometheus:
+          url: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc
+          port: 9090
+        
+        # Minimal resources for laptop/kind environment
+        resources:
+          limits:
+            cpu: 50m
+            memory: 64Mi
+          requests:
+            cpu: 25m
+            memory: 32Mi
+        
+        replicas: 1
+        
+        rules:
+          default: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prometheus-adapter
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true

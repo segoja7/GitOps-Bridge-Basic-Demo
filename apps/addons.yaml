@@ -4,22 +4,22 @@ metadata:
   name: cluster-addons
   namespace: argocd
 spec:
-  syncPolicy:
-    preserveResourcesOnDeletion: true
   generators:
-    - clusters: {}  # For a local cluster, simplify the selector
+    - clusters:
+        selector:
+          matchLabels:
+            environment: dev
   template:
     metadata:
       name: 'bootstrap-addons'
     spec:
       project: default
       source:
-        repoURL: '{{metadata.annotations.addons_repo_url}}'
-        path: '{{metadata.annotations.addons_repo_basepath}}{{metadata.annotations.addons_repo_path}}'
-        targetRevision: '{{metadata.annotations.addons_repo_revision}}'
+        repoURL: 'https://github.com/markbosire/gitops-repo'
+        path: 'addons'
+        targetRevision: 'main'
         directory:
           recurse: true
-          exclude: exclude/*
       destination:
         namespace: 'argocd'
         name: '{{name}}'
