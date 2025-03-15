@@ -4,13 +4,12 @@ metadata:
   name: kube-prometheus-stack
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0" # Ensure this syncs earlier than other applications
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   source:
     chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts
-    # Try an older version with smaller CRD annotations to avoid the size limit issue
     targetRevision: 55.4.0
     helm:
       values: |
@@ -52,13 +51,44 @@ spec:
         grafana:
           enabled: true
           adminPassword: prom-operator
+          # Adjust Grafana resource limits - the default might be too restrictive
           resources:
             limits:
-              cpu: 100m
-              memory: 128Mi
+              cpu: 200m        # Increased from 100m
+              memory: 256Mi    # Increased from 128Mi
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 100m        # Increased from 50m
+              memory: 128Mi    # Increased from 64Mi
+          # Add startup probe to give Grafana more time to initialize
+          startupProbe:
+            enabled: true
+            failureThreshold: 10
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          # Modify readiness probe to be more lenient
+          readinessProbe:
+            enabled: true
+            failureThreshold: 3
+            timeoutSeconds: 5
+            periodSeconds: 15
+          # Modify liveness probe
+          livenessProbe:
+            enabled: true
+            failureThreshold: 10
+            timeoutSeconds: 5
+            periodSeconds: 15
+          # Add extra initialization time
+          initChownData:
+            enabled: true
+            resources:
+              limits:
+                cpu: 50m
+                memory: 64Mi
+          # Ensure Grafana has permissions to write to its directories
+          securityContext:
+            runAsUser: 472
+            runAsGroup: 472
+            fsGroup: 472
               
         prometheus:
           enabled: true
@@ -99,7 +129,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      # These options are critical for handling CRDs properly
       - ServerSideApply=true
       - Replace=true
       - Force=true
