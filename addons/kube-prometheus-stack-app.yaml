@@ -11,8 +11,13 @@ spec:
     targetRevision: 56.21.0
     helm:
       values: |
-        # Minimal configuration for local laptop
+        # Disable admission webhooks to avoid issues on Kind
         prometheusOperator:
+          admissionWebhooks:
+            enabled: false
+            failurePolicy: Ignore
+          tls:
+            enabled: false
           resources:
             limits:
               cpu: 100m
@@ -78,6 +83,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: kube-prometheus-stack
   syncPolicy:
-    automated: {}
+    automated: 
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
