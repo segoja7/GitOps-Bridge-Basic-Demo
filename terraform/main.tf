@@ -1,12 +1,12 @@
 provider "kubernetes" {
   config_path = "~/.kube/config"
-  config_context     = "kind-gitops-demo"
+  config_context = "kind-gitops-demo"
 }
 
 provider "helm" {
   kubernetes {
     config_path = "~/.kube/config"
-    config_context     = "kind-gitops-demo"
+    config_context = "kind-gitops-demo"
   }
 }
 
@@ -15,14 +15,34 @@ locals {
   environment  = "dev"
   gitops_repo  = "https://github.com/markbosire/gitops-repo"
 
-  addons = {
-    enable_prometheus = true  # Enable Prometheus addon
+  # OSS addons configuration
+  oss_addons = {
+    enable_kube_prometheus_stack = true  
+    enable_prometheus_adapter    = true  
   }
   
-  # Define ArgoCD applications
+  # Merge all addon categories
+  addons = merge(
+    local.oss_addons,
+    {
+      kubernetes_version = "1.26" # Add the k8s version you're using
+    }
+  )
+  
+  # Metadata for addons
+  addons_metadata = {
+    cluster_name = local.cluster_name
+    environment  = local.environment
+    addons_repo_url = local.gitops_repo
+    addons_repo_basepath = ""
+    addons_repo_path = "addons"
+    addons_repo_revision = "main"
+  }
+  
+  # Define ArgoCD applications - including the addons ApplicationSet
   argocd_apps = {
     nginx = file("${path.module}/../apps/nginx.yaml")
-    prometheus = file("${path.module}/../apps/prometheus.yaml")
+    addons = file("${path.module}/../apps/addons.yaml")  # Important - this is needed
   }
 }
 
@@ -32,13 +52,15 @@ module "gitops_bridge" {
   cluster = {
     cluster_name = local.cluster_name
     environment  = local.environment
-    metadata     = {
-      repo_url  = local.gitops_repo
-      repo_path = "apps"
-    }
-    addons       = local.addons
+    metadata     = merge(
+      {
+        repo_url  = local.gitops_repo
+        repo_path = "apps"
+      },
+      local.addons_metadata
+    )
+    addons = local.addons
   }
   
-  # Pass your ArgoCD applications to the module
   apps = local.argocd_apps
 }
