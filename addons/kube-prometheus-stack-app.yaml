@@ -3,14 +3,22 @@ kind: Application
 metadata:
   name: kube-prometheus-stack
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0" # Ensure this syncs earlier than other applications
 spec:
   project: default
   source:
     chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 56.21.0
+    # Try an older version with smaller CRD annotations to avoid the size limit issue
+    targetRevision: 55.4.0
     helm:
       values: |
+        # CRD management settings
+        crds:
+          create: true
+          keep: false
+        
         # Disable admission webhooks to avoid issues on Kind
         prometheusOperator:
           admissionWebhooks:
@@ -25,6 +33,9 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
+          
+          # Critical setting: install CRDs before components
+          manageCRDs: true
         
         alertmanager:
           enabled: true
@@ -88,3 +99,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # These options are critical for handling CRDs properly
+      - ServerSideApply=true
+      - Replace=true
+      - Force=true
