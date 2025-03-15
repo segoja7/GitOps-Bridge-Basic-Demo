@@ -14,7 +14,7 @@ spec:
     helm:
       # Reference values file from an external path
       valueFiles:
-        - ../values/kube-prometheus-stack-values.yaml
+        - https://github.com/markbosire/gitops-repo/values/kube-prometheus-stack-values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
