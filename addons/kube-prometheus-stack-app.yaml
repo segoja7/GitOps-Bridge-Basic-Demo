@@ -54,41 +54,73 @@ spec:
           # Adjust Grafana resource limits - the default might be too restrictive
           resources:
             limits:
-              cpu: 200m        # Increased from 100m
-              memory: 256Mi    # Increased from 128Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
-              cpu: 100m        # Increased from 50m
-              memory: 128Mi    # Increased from 64Mi
-          # Add startup probe to give Grafana more time to initialize
-          startupProbe:
+              cpu: 100m
+              memory: 128Mi
+          
+          # Use proper probe configuration format
+          # The enabled flag is a Helm-level parameter, not a Kubernetes API parameter
+          testFramework:
+            enabled: false
+            
+          # Handle service properly
+          service:
             enabled: true
-            failureThreshold: 10
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          # Modify readiness probe to be more lenient
-          readinessProbe:
-            enabled: true
-            failureThreshold: 3
-            timeoutSeconds: 5
-            periodSeconds: 15
-          # Modify liveness probe
-          livenessProbe:
-            enabled: true
-            failureThreshold: 10
-            timeoutSeconds: 5
-            periodSeconds: 15
-          # Add extra initialization time
+            port: 3000
+            targetPort: 3000
+          
+          # Modify probes using correct Kubernetes API fields
+          podAnnotations:
+            helm.sh/hook: post-install,post-upgrade
+          
+          # Pass proper probe configs via the Helm values
+          deploymentStrategy:
+            type: Recreate
+          
+          # Use settings that are valid helm chart values for the Grafana chart
+          deploymentAnnotations:
+            rollme: "{{ randAlphaNum 5 }}"
+            
+          # Configure init container properly
           initChownData:
             enabled: true
             resources:
               limits:
                 cpu: 50m
                 memory: 64Mi
-          # Ensure Grafana has permissions to write to its directories
+          
+          # Add proper security context
           securityContext:
             runAsUser: 472
             runAsGroup: 472
             fsGroup: 472
+          
+          # Grafana-specific settings
+          persistence:
+            enabled: true
+            size: 1Gi
+          
+          # Add readiness/liveness probe config through the appropriate Helm values
+          # These will be translated correctly to Kubernetes probe objects
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 15
+            failureThreshold: 3
+            
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 15
+            failureThreshold: 10
               
         prometheus:
           enabled: true
