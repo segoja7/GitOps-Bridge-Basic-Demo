@@ -251,9 +251,11 @@ alertmanager:
     tlsConfig: {}
     paused: false
     nodeSelector: {}
-    resources: 
+    resources:
       requests:
-        memory: 400Mi
+        memory: 100Mi
+      limits:
+        memory: 200Mi
     podAntiAffinity: ""
     podAntiAffinityTopologyKey: kubernetes.io/hostname
     affinity: {}
@@ -766,11 +768,11 @@ prometheusOperator:
     relabelings: []
   resources: 
     limits:
-      cpu: 200m
-      memory: 200Mi
-    requests:
       cpu: 100m
       memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
 
   hostNetwork: false
   nodeSelector: {}
@@ -976,9 +978,11 @@ prometheus:
     ## additionalRemoteWrite is appended to remoteWrite
     additionalRemoteWrite: []
     remoteWriteDashboards: false
-    resources: 
-    requests:
-      memory: 400Mi
+    resources:
+      requests:
+        memory: 200Mi
+      limits:
+        memory: 400Mi
     storageSpec: {}
     volumes: []
     volumeMounts: []
