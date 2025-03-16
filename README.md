@@ -89,6 +89,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ### 6. Verify Deployments
 
+Wait for all the applications to finish deploying.
 Check that your applications are successfully deployed:
 
 ```bash
@@ -115,7 +116,7 @@ Port-forward the prometheus (in my case, the service name is kube-prometheus-sta
 
 ```bash
 # Port-forward the prometheus service (adjust service name if needed)
-kubectl port-forward svc/kube-prometheus-stack-gito-prometheus -n monitoring 9090:9090
+kubectl port-forward svc/kube-prometheus-stack-prometheus -n monitoring 9090:9090
 ```
 
 Then visit http://localhost:9090 in your browser.
@@ -127,7 +128,7 @@ Access Grafana:
 kubectl get svc -n monitoring | grep grafana
 
 # Port-forward the Grafana service (adjust service name if needed)
-kubectl port-forward svc/kube-prometheus-stack-gitops-demo-grafana -n monitoring 3000:80
+kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80
 ```
 
 Then visit http://localhost:3000 in your browser.
