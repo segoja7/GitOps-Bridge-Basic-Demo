@@ -1,56 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: kube-prometheus-stack-crds
-  namespace: argocd
-spec:
-  project: default
-  source:
-    chart: kube-prometheus-stack
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 55.4.0
-    helm:
-      skipCrds: false
-      # Only install CRDs - no values file needed
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    # Add this to ensure CRDs are applied first
-    automated:
-      prune: false
-      selfHeal: true
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
   name: kube-prometheus-stack
   namespace: argocd
-  annotations:
-    # This ensures it runs after the CRDs are installed
-    argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: default
-  source:
-    chart: kube-prometheus-stack
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 55.4.0
-    helm:
-      # Skip CRDs on this application since they're handled separately
-      skipCrds: true 
-      valueFiles:
-        - values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-  # Add dependency on the CRDs app
-  ignoreDifferences:
-    - group: apiextensions.k8s.io
-      kind: CustomResourceDefinition
-      jsonPointers:
-        - /metadata/annotations
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            environment: dev
+  template:
+    metadata:
+      name: 'kube-prometheus-stack-{{name}}'
+    spec:
+      project: default
+      source:
+        chart: kube-prometheus-stack
+        repoURL: https://prometheus-community.github.io/helm-charts
+        targetRevision: 55.4.0
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        namespace: monitoring
+        name: '{{name}}'
+      syncPolicy:
+        automated: {}
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true  # This handles large CRDs
+          - ApplyOutOfSyncOnly=true
