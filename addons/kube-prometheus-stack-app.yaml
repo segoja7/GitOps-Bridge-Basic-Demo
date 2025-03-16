@@ -11,7 +11,7 @@ spec:
             environment: dev
   template:
     metadata:
-      name: 'kube-prometheus-stack-{{name}}'
+      name: 'kube-prometheus-stack'
     spec:
       project: default
       source:
@@ -23,10 +23,9 @@ spec:
             - values.yaml
       destination:
         namespace: monitoring
-        name: '{{name}}'
       syncPolicy:
         automated: {}
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true  # This handles large CRDs
-          - ApplyOutOfSyncOnly=true
+        
