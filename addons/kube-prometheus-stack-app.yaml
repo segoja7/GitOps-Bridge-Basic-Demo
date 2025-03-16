@@ -22,6 +22,7 @@ spec:
           valueFiles:
             - values.yaml
       destination:
+        server: https://kubernetes.default.svc  # Add this line to specify the destination server
         namespace: monitoring
       syncPolicy:
         automated: {}
