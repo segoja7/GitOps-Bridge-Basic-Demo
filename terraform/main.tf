@@ -1,12 +1,12 @@
 provider "kubernetes" {
   config_path = "~/.kube/config"
-  config_context = "kind-gitops-demo"
+  config_context = "gitops-demo"
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     config_path = "~/.kube/config"
-    config_context = "kind-gitops-demo"
+    config_context = "gitops-demo"
   }
 }
 
@@ -25,7 +25,7 @@ locals {
   addons = merge(
     local.oss_addons,
     {
-      kubernetes_version = "1.26" # Add the k8s version you're using
+      kubernetes_version = "1.32" # Add the k8s version you're using
     }
   )
   
