@@ -13,7 +13,7 @@ provider "helm" {
 locals {
   cluster_name = "gitops-demo"
   environment  = "dev"
-  gitops_repo  = "https://github.com/markbosire/gitops-repo"
+  gitops_repo  = "https://github.com/segoja7/GitOps-Bridge-Basic-Demo"
 
   # OSS addons configuration
   oss_addons = {
